@@ -37,6 +37,7 @@ public class Controller {
     public static final String LOGIN_FAILED = "/login_failed ";
     public static final String WHO_AM_I = "/who_am_i";
     public static final String EXIT = "/exit";
+    public static final String W = "/w ";
 
     public void setNickname(String nickname) {
         if (nickname != null) {
