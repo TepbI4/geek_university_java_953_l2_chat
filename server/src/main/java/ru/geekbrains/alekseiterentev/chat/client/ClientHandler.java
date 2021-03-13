@@ -72,9 +72,11 @@ public class ClientHandler {
 
                     if (msg.startsWith(W)) {
                         String privateMsg = msg.substring(W.length());
-                        server.sendPrivateMessage(privateMsg.substring(0, privateMsg.indexOf("\\s")),
-                                privateMsg.substring(privateMsg.indexOf("\\s") + 1));
-                        sendMsg(privateMsg.substring(privateMsg.indexOf("\\s") + 1));
+                        String recipientNickname = privateMsg.substring(0, privateMsg.indexOf(" "));
+                        String msgText = privateMsg.substring(privateMsg.indexOf(" ") + 1);
+                        server.sendPrivateMessage(recipientNickname,
+                                nickname + ": " + msgText);
+                        sendMsg(nickname + ": " + msgText);
                         continue;
                     }
 
