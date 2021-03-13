@@ -5,8 +5,12 @@
 <?import javafx.scene.control.TextField?>
 <VBox fx:controller="ru.geekbrains.alekseiterentev.controller.Controller"
       xmlns:fx="http://javafx.com/fxml" alignment="center">
+    <HBox fx:id="loginPanel" visible="true" managed="true">
+        <TextField fx:id="loginField" HBox.hgrow="ALWAYS" promptText="Enter your nickname"  onKeyPressed="#loginOnKeyPressedAction"/>
+        <Button text="Log In" onAction="#login"/>
+    </HBox>
     <TextArea fx:id="chatField" editable="false" VBox.vgrow="ALWAYS"/>
-    <HBox>
+    <HBox fx:id="msgPanel" visible="false" managed="false">
         <TextField fx:id="msgField" HBox.hgrow="ALWAYS" onKeyPressed="#sendMsgOnKeyPressedAction"/>
         <Button fx:id="sendMsg" text="Send" onAction="#sendMsgAction"/>
     </HBox>
