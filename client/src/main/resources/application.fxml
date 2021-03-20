@@ -3,13 +3,22 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ListView?>
 <VBox fx:controller="ru.geekbrains.alekseiterentev.controller.Controller"
       xmlns:fx="http://javafx.com/fxml" alignment="center">
     <HBox fx:id="loginPanel" visible="true" managed="true">
         <TextField fx:id="loginField" HBox.hgrow="ALWAYS" promptText="Enter your nickname"  onKeyPressed="#loginOnKeyPressedAction"/>
         <Button text="Log In" onAction="#login"/>
     </HBox>
-    <TextArea fx:id="chatField" editable="false" VBox.vgrow="ALWAYS"/>
+
+    <HBox VBox.vgrow="ALWAYS">
+        <TextArea fx:id="chatField" HBox.hgrow="ALWAYS" editable="false" wrapText="true"/>
+        <VBox fx:id="clientsListBox">
+            <Button text="Log Out" onAction="#onClickLogOut" prefWidth="150" maxWidth="150" minWidth="150"/>
+            <ListView VBox.vgrow="ALWAYS" fx:id="clientsList" prefWidth="150" maxWidth="150" minWidth="150"/>
+        </VBox>
+    </HBox>
+
     <HBox fx:id="msgPanel" visible="false" managed="false">
         <TextField fx:id="msgField" HBox.hgrow="ALWAYS" onKeyPressed="#sendMsgOnKeyPressedAction"/>
         <Button fx:id="sendMsg" text="Send" onAction="#sendMsgAction"/>

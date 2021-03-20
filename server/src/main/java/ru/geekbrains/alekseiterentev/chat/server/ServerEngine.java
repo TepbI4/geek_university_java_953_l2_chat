@@ -10,13 +10,14 @@ import java.util.List;
 
 public class ServerEngine {
 
-    public static final String STAT = "/stat";
-    public static final String LOGIN = "/login ";
-    public static final String LOGIN_OK = "/login_ok ";
-    public static final String LOGIN_FAILED = "/login_failed ";
-    public static final String WHO_AM_I = "/who_am_i";
-    public static final String EXIT = "/exit";
-    public static final String W = "/w ";
+    public static final String STAT_CMD = "/stat";
+    public static final String LOGIN_CMD = "/login ";
+    public static final String LOGIN_OK_CMD = "/login_ok ";
+    public static final String LOGIN_FAILED_CMD = "/login_failed ";
+    public static final String WHO_AM_I_CMD = "/who_am_i";
+    public static final String EXIT_CMD = "/exit";
+    public static final String PRIVATE_MSG_CMD = "/w ";
+    public static final String CHANGE_NICK_CMD = "/change_nick ";
 
     private int port;
     private List<ClientHandler> clients;
@@ -39,26 +40,43 @@ public class ServerEngine {
         }
     }
 
-    public void subscribe(ClientHandler client) {
+    public void subscribe(ClientHandler client) throws IOException {
         clients.add(client);
+        broadcast("Client " + client.getNickname() + " entered the chat!");
+        broadcastClientsList();
     }
 
-    public void unsubscribe(ClientHandler client) {
+    public void unsubscribe(ClientHandler client) throws IOException {
         clients.remove(client);
+        broadcast("Client " + client.getNickname() + " left the chat!");
+        broadcastClientsList();
     }
 
     public void broadcast(String msg) throws IOException {
         for (ClientHandler client : clients) {
             client.sendMsg(msg);
-        };
+        }
     }
 
-    public void sendPrivateMessage(String clientName, String msg) throws IOException {
+    public synchronized void broadcastClientsList() throws IOException {
+        StringBuilder stringBuilder = new StringBuilder("/clients_list ");
+        for (ClientHandler client : clients) {
+            stringBuilder.append(client.getNickname()).append(" ");
+        }
+        stringBuilder.setLength(stringBuilder.length() - 1);
+        String clientsList = stringBuilder.toString();
+        broadcast(clientsList);
+    }
+
+    public void sendPrivateMessage(ClientHandler sender, String clientName, String msg) throws IOException {
         for (ClientHandler client : clients) {
             if (client.getNickname().equals(clientName)) {
-                client.sendMsg(msg);
+                client.sendMsg("From: " + sender.getNickname() + " Message: " + msg);
+                sender.sendMsg("To: " + clientName + " Message : " + msg);
+                return;
             }
         }
+        sender.sendMsg("Unable to send message to user: " + clientName + ". No such user on-line.");
     }
 
     public boolean isNickBusy(String username) {
