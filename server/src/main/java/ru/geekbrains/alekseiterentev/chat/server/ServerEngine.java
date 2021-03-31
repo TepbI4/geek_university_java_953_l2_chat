@@ -21,10 +21,17 @@ public class ServerEngine {
 
     private int port;
     private List<ClientHandler> clients;
+    private AuthenticationProvider authenticationProvider;
+
+    public AuthenticationProvider getAuthenticationProvider() {
+        return authenticationProvider;
+    }
 
     public ServerEngine(int port) {
         this.port = port;
         this.clients = new ArrayList<>();
+//        this.authenticationProvider = new InMemoryAuthenticationProvider();
+        this.authenticationProvider = new DbAuthenticationProvider();
 
         try(ServerSocket serverSocket = new ServerSocket(8189)){
             System.out.println("Server running on port 8189. Waiting for client logged in...");

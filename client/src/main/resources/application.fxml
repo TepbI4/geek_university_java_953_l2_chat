@@ -4,10 +4,12 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.PasswordField?>
 <VBox fx:controller="ru.geekbrains.alekseiterentev.controller.Controller"
       xmlns:fx="http://javafx.com/fxml" alignment="center">
     <HBox fx:id="loginPanel" visible="true" managed="true">
         <TextField fx:id="loginField" HBox.hgrow="ALWAYS" promptText="Enter your nickname"  onKeyPressed="#loginOnKeyPressedAction"/>
+        <PasswordField fx:id="passwordField" HBox.hgrow="ALWAYS" promptText="Введите пароль" onAction="#login"/>
         <Button text="Log In" onAction="#login"/>
     </HBox>
 
