@@ -6,6 +6,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.sql.SQLException;
 
 import static ru.geekbrains.alekseiterentev.chat.server.ServerEngine.CHANGE_NICK_CMD;
 import static ru.geekbrains.alekseiterentev.chat.server.ServerEngine.EXIT_CMD;
@@ -40,8 +41,20 @@ public class ClientHandler {
                 while (true) {
                     String msg = in.readUTF();
                     if (msg.startsWith(LOGIN_CMD)) {
-                        // login Bob
-                        String usernameFromLogin = msg.substring(LOGIN_CMD.length());
+                        String[] tokens = msg.split("\\s+");
+                        if (tokens.length != 3) {
+                            sendMsg(LOGIN_FAILED_CMD + "Enter login and password");
+                            continue;
+                        }
+                        String login = tokens[1];
+                        String password = tokens[2];
+
+                        String usernameFromLogin = server.getAuthenticationProvider().getNicknameByLoginAndPassword(login, password);
+
+                        if (usernameFromLogin == null) {
+                            sendMsg(LOGIN_FAILED_CMD + "Incorrect login/password entered");
+                            continue;
+                        }
 
                         if (server.isNickBusy(usernameFromLogin)) {
                             sendMsg(LOGIN_FAILED_CMD + "Current nickname is already used");
@@ -74,6 +87,8 @@ public class ClientHandler {
                 }
             } catch (IOException e) {
                 e.printStackTrace();
+            } catch (SQLException e) {
+                e.printStackTrace();
             } finally {
                 try {
                     disconnect();
@@ -84,7 +99,7 @@ public class ClientHandler {
         }).start();
     }
 
-    private boolean sendCmd(String cmd) throws IOException {
+    private boolean sendCmd(String cmd) throws IOException, SQLException {
         if (cmd.startsWith(STAT_CMD)) {
             sendMsg("Messages count is: " + msgCount);
             return true;
@@ -107,6 +122,7 @@ public class ClientHandler {
         if (cmd.startsWith(CHANGE_NICK_CMD)) {
             String newNickName = cmd.substring(CHANGE_NICK_CMD.length());
             server.unsubscribe(this);
+            server.getAuthenticationProvider().changeNickname(nickname, newNickName);
             nickname = newNickName;
             server.subscribe(this);
             return true;

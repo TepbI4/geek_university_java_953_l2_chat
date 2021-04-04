@@ -8,6 +8,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ListView;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
@@ -26,6 +27,9 @@ public class Controller implements Initializable {
 
     @FXML
     TextField loginField, msgField;
+
+    @FXML
+    PasswordField passwordField;
 
     @FXML
     TextArea chatField;
@@ -54,22 +58,14 @@ public class Controller implements Initializable {
     public static final String CLIENTS_MSG_CMD = "/clients_list ";
 
     public void setNickname(String nickname) {
-        if (nickname != null) {
-            this.nickname = nickname;
-            loginPanel.setVisible(false);
-            loginPanel.setManaged(false);
-            msgPanel.setVisible(true);
-            msgPanel.setManaged(true);
-            clientsListBox.setVisible(true);
-            clientsListBox.setManaged(true);
-        } else {
-            loginPanel.setVisible(true);
-            loginPanel.setManaged(true);
-            msgPanel.setVisible(false);
-            msgPanel.setManaged(false);
-            clientsListBox.setVisible(false);
-            clientsListBox.setManaged(false);
-        }
+        this.nickname = nickname;
+        boolean nicknameIsNull = nickname == null;
+        loginPanel.setVisible(nicknameIsNull);
+        loginPanel.setManaged(nicknameIsNull);
+        msgPanel.setVisible(!nicknameIsNull);
+        msgPanel.setManaged(!nicknameIsNull);
+        clientsListBox.setVisible(!nicknameIsNull);
+        clientsListBox.setManaged(!nicknameIsNull);
     }
 
     @Override
@@ -106,7 +102,7 @@ public class Controller implements Initializable {
         }
 
         try {
-            out.writeUTF(LOGIN_CMD + loginField.getText());
+            out.writeUTF(LOGIN_CMD + loginField.getText() + " " + passwordField.getText());
         } catch (IOException e) {
             e.printStackTrace();
         }
