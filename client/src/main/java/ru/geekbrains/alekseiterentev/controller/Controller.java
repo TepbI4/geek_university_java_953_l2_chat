@@ -16,8 +16,13 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.URL;
@@ -47,6 +52,8 @@ public class Controller implements Initializable {
     private Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
+    private File logFile;
+    private BufferedWriter logWriter;
 
     public static final String STAT_CMD = "/stat";
     public static final String LOGIN_CMD = "/login ";
@@ -119,12 +126,16 @@ public class Controller implements Initializable {
             socket = new Socket("localhost", 8189);
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
+            logFile = new File("log.txt");
+
             Thread t = new Thread(() -> {
                 try {
                     while (true) {
                         String msg = in.readUTF();
                         if (msg.startsWith(LOGIN_OK_CMD)) {
                             setNickname(msg.substring(LOGIN_OK_CMD.length()));
+                            fetchLog();
+                            createLogger();
                             break;
                         }
                         if (msg.startsWith(LOGIN_FAILED_CMD)) {
@@ -145,6 +156,7 @@ public class Controller implements Initializable {
                         }
 
                         chatField.appendText(msg + "\n");
+                        logMessage(msg);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -182,17 +194,51 @@ public class Controller implements Initializable {
     }
 
     private void disconnect() {
-        if (socket != null) {
-            try {
-                socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+
+        try {
+            if(in != null) {
+                in.close();
             }
+
+            if(out != null) {
+                out.close();
+            }
+
+            if (socket != null) {
+                socket.close();
+            }
+
+            if(logWriter != null) {
+                logWriter.flush();
+                logWriter.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         setNickname(null);
     }
 
     public void onClickLogOut(ActionEvent actionEvent) throws IOException {
         out.writeUTF(EXIT_CMD);
+    }
+
+    private void fetchLog() {
+        try (BufferedReader dataInputStream = new BufferedReader(new FileReader(logFile))) {
+            String logLine = dataInputStream.readLine();
+            while (logLine != null) {
+                chatField.appendText(logLine + "\n");
+                logLine = dataInputStream.readLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void createLogger() throws IOException {
+        logWriter = new BufferedWriter(new FileWriter(logFile));
+    }
+
+    private void logMessage(String msg) throws IOException {
+        logWriter.write(msg + "\n");
     }
 }

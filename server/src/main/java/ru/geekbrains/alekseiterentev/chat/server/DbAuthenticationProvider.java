@@ -1,5 +1,7 @@
 package ru.geekbrains.alekseiterentev.chat.server;
 
+import org.sqlite.JDBC;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -14,8 +16,8 @@ public class DbAuthenticationProvider implements AuthenticationProvider {
 
     public DbAuthenticationProvider() {
         try {
-            Class.forName("org.sqlite.JDBC");
-            connection = DriverManager.getConnection("jdbc:sqlite:chatdb.db");
+            Class.forName(JDBC.class.getName());
+            connection = DriverManager.getConnection(JDBC.PREFIX + "chatdb.db");
             getNicknameByLoginAndPassword = connection.prepareStatement("select nick_name from user where login = ? and password = ?");
             updateNickname = connection.prepareStatement("update user set nick_name = ? where nick_name = ?");
         } catch (ClassNotFoundException | SQLException e) {
