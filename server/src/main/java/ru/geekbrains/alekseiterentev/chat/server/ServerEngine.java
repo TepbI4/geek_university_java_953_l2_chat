@@ -7,6 +7,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ServerEngine {
 
@@ -32,6 +34,7 @@ public class ServerEngine {
         this.clients = new ArrayList<>();
 //        this.authenticationProvider = new InMemoryAuthenticationProvider();
         this.authenticationProvider = new DbAuthenticationProvider();
+        ExecutorService executorService = Executors.newFixedThreadPool(5);
 
         try(ServerSocket serverSocket = new ServerSocket(8189)){
             System.out.println("Server running on port 8189. Waiting for client logged in...");
@@ -40,10 +43,12 @@ public class ServerEngine {
                 Socket socket = serverSocket.accept();
                 System.out.println("Client logged in!!!");
 
-                new ClientHandler(this, socket);
+                executorService.execute(new ClientHandler(this, socket));
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            executorService.shutdown();
         }
     }
 

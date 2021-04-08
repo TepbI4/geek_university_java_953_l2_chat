@@ -17,7 +17,7 @@ import static ru.geekbrains.alekseiterentev.chat.server.ServerEngine.STAT_CMD;
 import static ru.geekbrains.alekseiterentev.chat.server.ServerEngine.PRIVATE_MSG_CMD;
 import static ru.geekbrains.alekseiterentev.chat.server.ServerEngine.WHO_AM_I_CMD;
 
-public class ClientHandler {
+public class ClientHandler implements Runnable {
 
     private ServerEngine server;
     private Socket socket;
@@ -35,68 +35,6 @@ public class ClientHandler {
         this.socket = socket;
         this.in = new DataInputStream(socket.getInputStream());
         this.out = new DataOutputStream(socket.getOutputStream());
-
-        new Thread(() -> {
-            try {
-                while (true) {
-                    String msg = in.readUTF();
-                    if (msg.startsWith(LOGIN_CMD)) {
-                        String[] tokens = msg.split("\\s+");
-                        if (tokens.length != 3) {
-                            sendMsg(LOGIN_FAILED_CMD + "Enter login and password");
-                            continue;
-                        }
-                        String login = tokens[1];
-                        String password = tokens[2];
-
-                        String usernameFromLogin = server.getAuthenticationProvider().getNicknameByLoginAndPassword(login, password);
-
-                        if (usernameFromLogin == null) {
-                            sendMsg(LOGIN_FAILED_CMD + "Incorrect login/password entered");
-                            continue;
-                        }
-
-                        if (server.isNickBusy(usernameFromLogin)) {
-                            sendMsg(LOGIN_FAILED_CMD + "Current nickname is already used");
-                            continue;
-                        }
-
-                        nickname = usernameFromLogin;
-                        sendMsg(LOGIN_OK_CMD + nickname);
-                        server.subscribe(this);
-                        break;
-                    }
-                }
-
-                while (true) {
-                    String msg = in.readUTF();
-                    if (msg.isEmpty()) {
-                        continue;
-                    }
-
-                    if (msg.startsWith("/")) {
-                        if (sendCmd(msg)) {
-                            continue;
-                        } else {
-                            break;
-                        }
-                    }
-
-                    server.broadcast(nickname + ": " + msg);
-                    msgCount++;
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    disconnect();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
     }
 
     private boolean sendCmd(String cmd) throws IOException, SQLException {
@@ -151,5 +89,68 @@ public class ClientHandler {
             }
         }
         System.out.println(this.getNickname() + " disconnected");
+    }
+
+    @Override
+    public void run() {
+        try {
+            while (true) {
+                String msg = in.readUTF();
+                if (msg.startsWith(LOGIN_CMD)) {
+                    String[] tokens = msg.split("\\s+");
+                    if (tokens.length != 3) {
+                        sendMsg(LOGIN_FAILED_CMD + "Enter login and password");
+                        continue;
+                    }
+                    String login = tokens[1];
+                    String password = tokens[2];
+
+                    String usernameFromLogin = server.getAuthenticationProvider().getNicknameByLoginAndPassword(login, password);
+
+                    if (usernameFromLogin == null) {
+                        sendMsg(LOGIN_FAILED_CMD + "Incorrect login/password entered");
+                        continue;
+                    }
+
+                    if (server.isNickBusy(usernameFromLogin)) {
+                        sendMsg(LOGIN_FAILED_CMD + "Current nickname is already used");
+                        continue;
+                    }
+
+                    nickname = usernameFromLogin;
+                    sendMsg(LOGIN_OK_CMD + nickname);
+                    server.subscribe(this);
+                    break;
+                }
+            }
+
+            while (true) {
+                String msg = in.readUTF();
+                if (msg.isEmpty()) {
+                    continue;
+                }
+
+                if (msg.startsWith("/")) {
+                    if (sendCmd(msg)) {
+                        continue;
+                    } else {
+                        break;
+                    }
+                }
+
+                server.broadcast(nickname + ": " + msg);
+                msgCount++;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                disconnect();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
